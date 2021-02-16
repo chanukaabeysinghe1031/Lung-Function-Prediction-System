@@ -8,14 +8,13 @@ Created on Sun Feb 14 22:49:45 2021
 import pydicom as di 
 import os
 from os import listdir
-import gdcm
 import pylibjpeg
 import pandas as pd 
 import matplotlib.pyplot as plt
-import cv2 
 import numpy as np
 import math
 import tensorflow as tf
+import cv2
 
 
 IMG_PX_SIZE = 50 
@@ -27,7 +26,8 @@ patients = os.listdir(CT_images_dir)
 
 data_of_patients = pd.read_csv('D:\\IIT\\4th year\\FYP\\Lung Fibrosis\\Model\\Dataset\\train.csv',index_col=0)
 
-dataset=[]
+image_dataset=[]
+label_dataset=[]
 
 def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visualize=False):
     
@@ -37,25 +37,34 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
     slices_new=np.array(slices)
     
     if(len(slices)==10):
-        print("Shape of the slices",slices_new.shape)
-        dataset.append(np.array(slices_new))
+        resized_images=[]
+        for image in slices_new:
+            #  resizing the (512.512) image into (50,50) image
+            resized_image=cv2.resize(np.array(image.pixel_array),(IMG_PX_SIZE,IMG_PX_SIZE)) 
+            print("shape of the ct image",resized_image.shape)
+            resized_images.append(resized_image)
+        image_dataset.append(np.array(slices_new))
+        print
     else : 
         count=0
         remaining_slices=len(slices)
         for slice in range(remaining_slices):
-            new_slices10=[]
+            resized_images=[]
             if(remaining_slices>=10):
                 for  slice in range(10) :
-                    new_slices10.append(slices[count])
+                    #  resizing the (512.512) image into (50,50) image
+                    resized_image=cv2.resize(np.array(slices[count].pixel_array),(IMG_PX_SIZE,IMG_PX_SIZE))
+                    print("shape of the ct image",resized_image.shape)
+                    resized_images.append(resized_image)
                     count +=1
-                if(len(new_slices10)==10):
-                    dataset.append(np.array(new_slices10))
-                print(len(dataset))
+                if(len(resized_images)==10):
+                    image_dataset.append(np.array(resized_images))
+                print(len(image_dataset))
                 remaining_slices -=10
     return slices 
     
     
-for num , patient in enumerate(patients) :
+for num , patient in enumerate(patients[:40]) :
     if num%10 ==0 :
             print("Patient : ",num)
     
@@ -68,7 +77,9 @@ for num , patient in enumerate(patients) :
         
     print('=================================')
 
-print(np.array(dataset).shape())
+image_dataset2=np.array(image_dataset)
+print(np.array(image_dataset).shape)
+print(image_dataset)
     
     
     
