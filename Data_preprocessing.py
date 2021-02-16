@@ -43,8 +43,8 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
             resized_image=cv2.resize(np.array(image.pixel_array),(IMG_PX_SIZE,IMG_PX_SIZE)) 
             print("shape of the ct image",resized_image.shape)
             resized_images.append(resized_image)
-        image_dataset.append(np.array(slices_new))
-        print
+        resized_images = np.transpose(resized_images, (1,2,0))
+        image_dataset.append(resized_images)
     else : 
         count=0
         remaining_slices=len(slices)
@@ -58,13 +58,14 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
                     resized_images.append(resized_image)
                     count +=1
                 if(len(resized_images)==10):
-                    image_dataset.append(np.array(resized_images))
+                    resized_images = np.transpose(resized_images, (1,2,0))
+                    image_dataset.append(resized_images)
                 print(len(image_dataset))
                 remaining_slices -=10
     return slices 
     
     
-for num , patient in enumerate(patients[:40]) :
+for num , patient in enumerate(patients[:45]) :
     if num%10 ==0 :
             print("Patient : ",num)
     
@@ -79,10 +80,9 @@ for num , patient in enumerate(patients[:40]) :
 
 image_dataset2=np.array(image_dataset)
 print(np.array(image_dataset).shape)
-print(image_dataset)
+print(image_dataset[0].shape)    
     
     
     
-    
-    
+
     
