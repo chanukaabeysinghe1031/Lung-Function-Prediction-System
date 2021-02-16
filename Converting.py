@@ -111,7 +111,7 @@ def process_data(patient,labels_df,image_pixel_size=50,number_of_slices=20,visua
             y.imshow(eachSlice)
         plt.show() 
 
-    label = [label[0],label[1]]
+    label = [label[0]]
     print ("Shape of the new slices ",new_slices[0][0].shape)
     return np.array(new_slices),label
 
