@@ -33,20 +33,22 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
     
     path = CT_images_dir + patient 
     slices = [di.read_file(path+'/'+s) for s in os.listdir(path) ]
-    #print(slices)
     slices_new=np.array(slices)
+    label = data_of_patients._get_value(patient,'FVC')
     
     if(len(slices)==10):
         resized_images=[]
         for image in slices_new:
             #  resizing the (512.512) image into (50,50) image
             resized_image=cv2.resize(np.array(image.pixel_array),(IMG_PX_SIZE,IMG_PX_SIZE)) 
-            print("shape of the ct image",resized_image.shape)
-            resized_images.append(resized_image)
+            resized_images.append(resized_image) 
         resized_images = np.transpose(resized_images, (1,2,0))
-        image_dataset.append(resized_images)
+        image_dataset.append([resized_images,label])
+        label_dataset.append([patient,label])
+        #print("shape of dataset",np.array(image_dataset).shape)
     else : 
         count=0
+        patient_folder=0
         remaining_slices=len(slices)
         for slice in range(remaining_slices):
             resized_images=[]
@@ -54,20 +56,23 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
                 for  slice in range(10) :
                     #  resizing the (512.512) image into (50,50) image
                     resized_image=cv2.resize(np.array(slices[count].pixel_array),(IMG_PX_SIZE,IMG_PX_SIZE))
-                    print("shape of the ct image",resized_image.shape)
+                    #print("shape of the ct image",resized_image.shape)
                     resized_images.append(resized_image)
                     count +=1
                 if(len(resized_images)==10):
                     resized_images = np.transpose(resized_images, (1,2,0))
-                    image_dataset.append(resized_images)
-                print(len(image_dataset))
+                    image_dataset.append([resized_images,label[patient_folder]])
+                    label_dataset.append([patient,count,label[patient_folder]])
+                    patient_folder+=1
+                #print(len(image_dataset))
                 remaining_slices -=10
+                #print("shape of dataset",np.array(image_dataset).shape)
     return slices 
     
     
-for num , patient in enumerate(patients[:45]) :
-    if num%10 ==0 :
-            print("Patient : ",num)
+for num , patient in enumerate(patients[:65]) :
+    #if num%10 ==0 :
+            #print("Patient : ",num)
     
     try:
         CT_images_of_the_patient = build_dataset(patient,data_of_patients,
@@ -78,9 +83,12 @@ for num , patient in enumerate(patients[:45]) :
         
     print('=================================')
 
-image_dataset2=np.array(image_dataset)
+#image_dataset2=np.array(image_dataset)
 print(np.array(image_dataset).shape)
-print(image_dataset[0].shape)    
+#print(image_dataset[3]) 
+#print(np.array(image_dataset[0][0]).shape) 
+
+print(label_dataset)   
     
     
     
