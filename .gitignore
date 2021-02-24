@@ -327,3 +327,15 @@ web_server/node_modules/vary/index.js
 web_server/node_modules/vary/LICENSE
 web_server/node_modules/vary/package.json
 web_server/node_modules/vary/README.md
+node_modules/dicom-parser/.circleci/config.yml
+node_modules/dicom-parser/.eslintrc.js
+node_modules/dicom-parser/changelog.md
+node_modules/dicom-parser/dist/dicomParser.js
+node_modules/dicom-parser/dist/dicomParser.js.map
+node_modules/dicom-parser/dist/dicomParser.min.js
+node_modules/dicom-parser/dist/dicomParser.min.js.map
+node_modules/dicom-parser/dist/package.js
+node_modules/dicom-parser/index.d.ts
+node_modules/dicom-parser/LICENSE
+node_modules/dicom-parser/package.json
+node_modules/dicom-parser/README.md
