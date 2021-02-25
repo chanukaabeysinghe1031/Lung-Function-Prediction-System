@@ -43,7 +43,7 @@ def preprocess(image):
 print(" * Loading custom model")
 getModel()
 
-@app.route("/predict",method=["POST"])
+@app.route("/predict",methods=["POST"])
 def predict():
     message = request.get_json(force=True)
     encoded= message['image']
