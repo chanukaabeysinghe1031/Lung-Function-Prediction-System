@@ -21,6 +21,26 @@ import cv2
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return "<h1>This is th flask backend for the severity of decline in lung function prediction system</h1>"
+
+@app.route("/predict")
+def predict():
+    print(" Yes ")
+    message = request.get_json(force=True)
+    encoded= message['image']
+    decoded =  base64.b64decode(encoded)
+    image=Image.open(io.BytesIO(decoded))
+    processedImage=preprocess(image)
+    prediction = model.predict(processedImage).tolist()
+    response = {
+        'prediction':prediction[0]    
+    }
+    return jsonify(response)
+
+if __name__ == "__main__":
+    app.run()
 
 def getModel():
     global model 
@@ -43,21 +63,9 @@ def preprocess(image):
 print(" * Loading custom model")
 getModel()
 
-@app.route("/predict",methods=["POST"])
-def predict():
-    message = request.get_json(force=True)
-    encoded= message['image']
-    decoded =  base64.b64decode(encoded)
-    image=Image.open(io.BytesIO(decoded))
-    processedImage=preprocess(image)
-    prediction = model.predict(processedImage).tolist()
-    response = {
-        'Prediction':prediction[0]    
-    }
-    return jsonify(response)
+
     
-    
-    
+
     
     
     
