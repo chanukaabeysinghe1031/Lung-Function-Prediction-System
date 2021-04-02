@@ -1,19 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 24 17:43:33 2021
-
-@author: Chanuka Abeysinghe
-"""
-
-from flask import Flask,render_template,request
-import pickle
-import numpy as np
+from flask import Flask
+from flask import render_template
 
 app = Flask(__name__)
+@app.route("/", methods=["Get","Post"])
 
-@app.route('/')
-def home():
-    return render_template('healthy_lung.html')
+def predict():
+    return render_template("index.html")
 
-if __name__ =="__main__":
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(port=12000,debug=True )
