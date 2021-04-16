@@ -1,31 +1,30 @@
-from flask import Flask
+from flask import Flask,url_for,session
 from flask import render_template
 from flask import request
 import os
-import sys
-import os
-import glob
-import re
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 from werkzeug.utils import secure_filename
-#from keras.applications.imagenet_utils import preprocess_input, decode_predictions
-#from keras.models import load_model
-#from keras.preprocessing import image
 import pydicom
 import cv2
-
+from flask_mysqldb import MySQL,MySQLdb
 from flask import Flask 
 
+#*********************************************VARIABLES**********************************************************
 UPLOAD_FOLDER = r"./static"
-
 MODEL_PATH = "D:\IIT\4th year\FYP\Lung Fibrosis\Prototype\Lung-Function-Prediction-System\App\my_model.h5"
 
-path =  ''
-
+#*****************************************DEFINE FLASK APP*******************************************************
 app = Flask(__name__)
 
+#***********************************CONFIGURING TH MYSQL DATABASE************************************************
+app.config['MYSQL_HOST']            = 'localhost'
+app.config['MYSQL_USER']            = 'root'
+app.config['MYSQL_PASSWORD']        = ''
+app.config['MYSQL_DB']              = 'HealthyLung'
+app.config['MYSQL_CURSORCLASS']     = 'DictCursor'
+
+mysql = MySQL(app)
 
 def load_model():
     global model
@@ -53,6 +52,9 @@ def preprocess_data(image_location):
     return input2
 
 
+@app.route('/login')
+def login():
+    return render_template("login.html")
 
 @app.route("/", methods=["Get","Post"])
 def predict():
@@ -79,4 +81,5 @@ def predict():
     return render_template("index.html",prediction=0)
 
 if __name__ == "__main__":
+    app.secret_key = "0779302236199710311231231231234"
     app.run(port=12000,debug=True )
