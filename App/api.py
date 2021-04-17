@@ -1,4 +1,4 @@
-from flask import Flask,url_for,session
+from flask import Flask,url_for,session,redirect
 from flask import render_template
 from flask import request
 import os
@@ -8,7 +8,8 @@ from werkzeug.utils import secure_filename
 import pydicom
 import cv2
 from flask_mysqldb import MySQL,MySQLdb
-from flask import Flask 
+from flask import Flask
+import bcrypt
 
 #*********************************************VARIABLES**********************************************************
 UPLOAD_FOLDER = r"./static"
@@ -51,12 +52,39 @@ def preprocess_data(image_location):
     input2=np.array(input2)
     return input2
 
+@app.route('/')
+def home():
+    return render_template("home.html")
 
 @app.route('/login')
 def login():
     return render_template("login.html")
 
-@app.route("/", methods=["Get","Post"])
+@app.route("/register", methods=["Get","Post"])
+def registerDoctor():
+    if request.method=='GET':
+        return render_template("register.html")
+    else:
+        firstName = request.form['firstName']
+        secondName = request.form['secondName']
+        userName = request.form['userName']
+        password = request.form['password'].encode('utf-8')
+        hash_password = bcrypt.hashpw(password,bcrypt.gensalt())
+
+        cursor=mysql.connection.cursor()
+        #cursor.execute("INSERT INTO doctors(firstName,secondName,username,password) values (%s,%s,%s.%s)",
+                       #(firstName,secondName,userName,password))
+        sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
+        values = (firstName,secondName,userName,password)
+        cursor.execute(sql, values)
+
+        mysql.connection.commit()
+        session['firstName'] = firstName
+        session['secondName'] = secondName
+        session['userName'] =userName
+        return redirect(url_for("home"))
+
+@app.route("/predict", methods=["Get","Post"])
 def predict():
     print("LOADING MODEL")
     load_model()

@@ -1,0 +1,28 @@
+{%  extends 'template.html' %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+
+    <div class="text-center">
+    <form class="form-signin" action="/register" method="post">
+      <img class="mb-4" src="../static/Free_Sample_By_Wix.jpg" alt="" width="72" height="72">
+      <h1 class="h3 mb-3 font-weight-normal">Please Register</h1>
+
+        <label for="firstName" class="sr-only">First Name</label>
+        <input type="text" id="firstName" class="form-control" placeholder="firstName" name="firstName" required autofocus>
+
+        <label for="secondName" class="sr-only">User Name</label>
+        <input type="text" id="secondName" class="form-control" placeholder="secondName" name="secondName"required autofocus>
+
+        <label for="userName" class="sr-only">User Name</label>
+        <input type="text" id="userName" class="form-control" placeholder="userName" name="userName" required autofocus>
+
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="Password" name="password" required>
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Register </button>
+      <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>
+    </form>
+  </div>
+{% endblock %}
