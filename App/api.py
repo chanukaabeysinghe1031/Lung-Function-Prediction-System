@@ -87,7 +87,7 @@ def registerDoctor():
         #cursor.execute("INSERT INTO doctors(firstName,secondName,username,password) values (%s,%s,%s.%s)",
                        #(firstName,secondName,userName,password))
         sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
-        values = (firstName,secondName,userName,hash_password)
+        values = (firstName,secondName,userName,password)
         cursor.execute(sql, values)
 
         mysql.connection.commit()
@@ -100,6 +100,23 @@ def registerDoctor():
 #                        LOGIN
 @app.route("/login", methods=["Get","Post"])
 def login():
+    if request.method == 'GET':
+        return render_template("login.html")
+    else:
+        userName = request.form['userName']
+        password = request.form['password']
+
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT *FROM doctors WHERE username=%s", (userName,))
+        user = cursor.fetchone()
+        if len(user)>0 :
+            if bcrypt.checkpw(password.encode('utf-8'),user['password'].encode('utf-8')):
+                return redirect(url_for("login"))
+            else :
+                return redirect(url_for("home"))
+        else :
+            return redirect(url_for("login"))
+def login2():
     if request.method=='Post':
         userName = request.form['userName']
         password = request.form['password'].encode('utf-8')
@@ -109,13 +126,13 @@ def login():
         user=cursor.fetchone()
 
         if len(user) >0:
+            print("123")
             if bcrypt.hashpw(password,user['password'].encode('utf-8'))==user['password'].encode('utf-8'):
                 session['firstName']=user['firstName']
                 session['secondName']=user['secondName']
                 session['userName']=user['username']
                 return redirect(url_for("home"))
             else:
-                print("NO USER")
                 return render_template("login.html")
     else :
         return render_template("login.html")
