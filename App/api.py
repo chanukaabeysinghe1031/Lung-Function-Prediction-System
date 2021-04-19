@@ -11,14 +11,14 @@ from flask_mysqldb import MySQL,MySQLdb
 from flask import Flask
 import bcrypt
 
-#*********************************************VARIABLES**********************************************************
+# *********************************************VARIABLES**********************************************************
 UPLOAD_FOLDER = r"./static"
 MODEL_PATH = "D:\IIT\4th year\FYP\Lung Fibrosis\Prototype\Lung-Function-Prediction-System\App\my_model.h5"
 
-#*****************************************DEFINE FLASK APP*******************************************************
+# *****************************************DEFINE FLASK APP*******************************************************
 app = Flask(__name__)
 
-#***********************************CONFIGURING TH MYSQL DATABASE************************************************
+# ***********************************CONFIGURING TH MYSQL DATABASE************************************************
 app.config['MYSQL_HOST']            = 'localhost'
 app.config['MYSQL_USER']            = 'root'
 app.config['MYSQL_PASSWORD']        = ''
@@ -26,11 +26,20 @@ app.config['MYSQL_DB']              = 'HealthyLung'
 app.config['MYSQL_CURSORCLASS']     = 'DictCursor'
 
 mysql = MySQL(app)
+# ______________________________________________________________________________
+#                                   LOAD MODEL
+# ______________________________________________________________________________
+
 
 def load_model():
     global model
     model = tf.keras.models.load_model('model.h5')
     print(" * Model loaded!")
+
+
+# _______________________________________________________________________________
+#                                 PREPROCESS DATA
+# _______________________________________________________________________________
 
 def preprocess_data(image_location):
     print(image_location)
@@ -51,14 +60,17 @@ def preprocess_data(image_location):
     input2.append(resized_images)
     input2=np.array(input2)
     return input2
+# _______________________________________________________________________________
+#                                      ROUTES
+# _______________________________________________________________________________
 
+
+#                      HOME ROUTE
 @app.route('/')
 def home():
     return render_template("home.html")
 
-@app.route('/login')
-def login():
-    return render_template("login.html")
+#                      REGISTER
 
 @app.route("/register", methods=["Get","Post"])
 def registerDoctor():
@@ -75,7 +87,7 @@ def registerDoctor():
         #cursor.execute("INSERT INTO doctors(firstName,secondName,username,password) values (%s,%s,%s.%s)",
                        #(firstName,secondName,userName,password))
         sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
-        values = (firstName,secondName,userName,password)
+        values = (firstName,secondName,userName,hash_password)
         cursor.execute(sql, values)
 
         mysql.connection.commit()
@@ -84,6 +96,32 @@ def registerDoctor():
         session['userName'] =userName
         return redirect(url_for("home"))
 
+
+#                        LOGIN
+@app.route("/login", methods=["Get","Post"])
+def login():
+    if request.method=='Post':
+        userName = request.form['userName']
+        password = request.form['password'].encode('utf-8')
+
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT *FROM doctors WHERE username=%s",(userName,))
+        user=cursor.fetchone()
+
+        if len(user) >0:
+            if bcrypt.hashpw(password,user['password'].encode('utf-8'))==user['password'].encode('utf-8'):
+                session['firstName']=user['firstName']
+                session['secondName']=user['secondName']
+                session['userName']=user['username']
+                return redirect(url_for("home"))
+            else:
+                print("NO USER")
+                return render_template("login.html")
+    else :
+        return render_template("login.html")
+
+
+#                     PREDICT
 @app.route("/predict", methods=["Get","Post"])
 def predict():
     print("LOADING MODEL")
@@ -105,8 +143,18 @@ def predict():
             model_input=preprocess_data(imageLocation)
             prediction = model.predict(model_input).tolist()
             print(prediction)
-            return render_template("index.html", prediction=prediction[0][0])
-    return render_template("index.html",prediction=0)
+            return render_template("home.html", prediction=prediction[0][0])
+    return render_template("home.html",prediction=0)
+
+#                           LOGOUT
+@app.route("/logout", methods=["Get","Post"])
+def logout():
+    session.clear()
+    return render_template("login.html")
+# ______________________________________________________________________________
+
+
+
 
 if __name__ == "__main__":
     app.secret_key = "0779302236199710311231231231234"

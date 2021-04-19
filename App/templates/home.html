@@ -7,11 +7,24 @@
 <div class="row">
     <div class="col-md-6 col-md-offset-3">
         <h2>Welcome</h2>
-        {% if session['name'] %}
-        <p>You login as {{ session['name'] }}</p>
+        {% if session['firstName'] %}
+        <p>You login as {{ session['firstName'] }}</p>
         {% else %}
         <p>Not login yet</p>
         {% endif %}
     </div>
 </div>
+    <div class="container main-body">
+    <!--This is the login page-->
+
+    <form method=post enctype=multipart/form-data action="/predict">
+        <h3>Insert the CT image of the patient</h3>
+        <input type=file name=image>
+        <input type=submit value=predict>
+        <h3>Prediction :{{ prediction}}</h3>
+    </form>
+
+
+</div>
+
 {% endblock %}
