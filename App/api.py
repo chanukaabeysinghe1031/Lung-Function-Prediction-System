@@ -10,6 +10,8 @@ import cv2
 from flask_mysqldb import MySQL,MySQLdb
 from flask import Flask
 import bcrypt
+from passlib.hash import sha256_crypt
+
 
 # *********************************************VARIABLES**********************************************************
 UPLOAD_FOLDER = r"./static"
@@ -72,28 +74,40 @@ def home():
 
 #                      REGISTER
 
+
 @app.route("/register", methods=["Get","Post"])
 def registerDoctor():
     if request.method=='GET':
         return render_template("register.html")
     else:
+        # Get data from the register form
         firstName = request.form['firstName']
         secondName = request.form['secondName']
         userName = request.form['userName']
-        password = request.form['password'].encode('utf-8')
-        hash_password = bcrypt.hashpw(password,bcrypt.gensalt())
+        password = request.form['password']
 
+        # Hashing the password
+        hashed_password = sha256_crypt.encrypt(password)
+
+        # Connection to the database
         cursor=mysql.connection.cursor()
-        #cursor.execute("INSERT INTO doctors(firstName,secondName,username,password) values (%s,%s,%s.%s)",
-                       #(firstName,secondName,userName,password))
+
         sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
-        values = (firstName,secondName,userName,password)
+        values = (firstName,secondName,userName,hashed_password)
         cursor.execute(sql, values)
 
         mysql.connection.commit()
+
+        # Save the data in the session
         session['firstName'] = firstName
         session['secondName'] = secondName
         session['userName'] =userName
+
+        # Load Model
+        print("LOADING MODEL")
+        load_model()
+        print("MODEL LOADED SUCCESSFULLY")
+
         return redirect(url_for("home"))
 
 
@@ -103,53 +117,44 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
     else:
+        # Get the data from the login form
         userName = request.form['userName']
         password = request.form['password']
 
+        # Get the user from the sql database
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT *FROM doctors WHERE username=%s", (userName,))
         user = cursor.fetchone()
+
+        # check whether there is a user with the username entered
         if len(user)>0 :
-            if bcrypt.checkpw(password.encode('utf-8'),user['password'].encode('utf-8')):
-                return redirect(url_for("login"))
-            else :
+            # Check whether the input password and the password from the database similar
+            if sha256_crypt.verify(password,user['password']):
+                # Save data in the session
+                session['firstName'] = user['firstName']
+                session['secondName'] = user['secondName']
+                session['userName'] = user['username']
+
+                # Load Model
+                print("LOADING MODEL")
+                load_model()
+                print("MODEL LOADED SUCCESSFULLY")
                 return redirect(url_for("home"))
+            else :
+                return redirect(url_for("login"))
         else :
             return redirect(url_for("login"))
-def login2():
-    if request.method=='Post':
-        userName = request.form['userName']
-        password = request.form['password'].encode('utf-8')
-
-        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("SELECT *FROM doctors WHERE username=%s",(userName,))
-        user=cursor.fetchone()
-
-        if len(user) >0:
-            print("123")
-            if bcrypt.hashpw(password,user['password'].encode('utf-8'))==user['password'].encode('utf-8'):
-                session['firstName']=user['firstName']
-                session['secondName']=user['secondName']
-                session['userName']=user['username']
-                return redirect(url_for("home"))
-            else:
-                return render_template("login.html")
-    else :
-        return render_template("login.html")
 
 
 #                     PREDICT
-@app.route("/predict", methods=["Get","Post"])
+@app.route("/predict", methods=["Get", "Post"])
 def predict():
-    print("LOADING MODEL")
-    load_model()
-    print("MODEL LOADED SUCCESSFULLY")
     if request.method == "POST":
         
         image= request.files["image"]
         basepath=os.path.dirname(__file__)
         file_path = os.path.join(
-            basepath,'',secure_filename(image.filename)
+            basepath, '', secure_filename(image.filename)
         )
         if image:
             imageLocation = os.path.join(
@@ -161,18 +166,17 @@ def predict():
             prediction = model.predict(model_input).tolist()
             print(prediction)
             return render_template("home.html", prediction=prediction[0][0])
-    return render_template("home.html",prediction=0)
+    return render_template("home.html", prediction=0)
+
 
 #                           LOGOUT
-@app.route("/logout", methods=["Get","Post"])
+@app.route("/logout", methods=["Get", "Post"])
 def logout():
     session.clear()
     return render_template("login.html")
 # ______________________________________________________________________________
 
 
-
-
 if __name__ == "__main__":
     app.secret_key = "0779302236199710311231231231234"
-    app.run(port=12000,debug=True )
+    app.run(port=12000, debug=True)
