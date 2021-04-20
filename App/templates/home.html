@@ -8,7 +8,7 @@
     <div class="col-md-6 col-md-offset-3">
         <h2>Welcome</h2>
         {% if session['firstName'] %}
-        <p>You login as {{ session['firstName'] }}</p>
+        <p>Doctor {{ session['firstName'] }} {{ session['secondName'] }}</p>
         {% else %}
         <p>Not login yet</p>
         {% endif %}

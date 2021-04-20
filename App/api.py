@@ -150,7 +150,7 @@ def login():
 @app.route("/predict", methods=["Get", "Post"])
 def predict():
     if request.method == "POST":
-        
+        load_model()
         image= request.files["image"]
         basepath=os.path.dirname(__file__)
         file_path = os.path.join(
