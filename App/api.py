@@ -43,7 +43,7 @@ def load_model():
     global model_ANN
     global model_CNN_LSTM
     model = tf.keras.models.load_model('model.h5')
-    model_ANN = tf.keras.models.load_model('./V6/ANN_MODEL_V6.h5')
+    model_ANN = tf.keras.models.load_model('./V6/ANN_Model_v7.h5')
     model_CNN_LSTM = tf.keras.models.load_model('./V6/model_CNN_LSTM_v6.h5')
     print(" * Model loaded!")
 
@@ -82,19 +82,36 @@ def preprocess_data2(CT_IMAGES_PATHS):
         resized_image=cv2.resize(np.array(ct_dicom.pixel_array),(50,50))
         image=np.array(resized_image)
         input.append(image)
-
-
     input=np.array(input)
-    print(input.shape)
-    resized_images = np.transpose(input, (1, 2, 0))
-    print(resized_images.shape)
-
-
     input2=[]
     input2.append(input)
     input2=np.array(input2)
     input2=input.reshape(1,10,50,50,1)
     return input2
+
+def preprocess_attributes(week,percentage,age,gender,smoking_status):
+    attributes=[]
+
+    attributes.append(tf.strings.to_number(week, out_type=tf.float32))
+    attributes.append(tf.strings.to_number(percentage, out_type=tf.float32))
+    if gender=='male':
+        gender_atr=int(1)
+    else:
+        gender_atr=int(0)
+    if smoking_status == 'smoker':
+        smoking_status_atr=int(1)
+    elif smoking_status == 'ex-smoker':
+        smoking_status_atr=int(0)
+    else :
+        smoking_status_atr=int(-1)
+    attributes.append(tf.strings.to_number(age, out_type=tf.float32))
+    attributes.append(gender_atr)
+    attributes.append(smoking_status_atr)
+
+    ANN_input=[]
+    ANN_input.append(attributes)
+    ANN_input =np.array(ANN_input)
+    return ANN_input
 
 # _______________________________________________________________________________
 #                                 CHECK FILE TYPE
@@ -121,22 +138,34 @@ def upload():
             flash('No file selected')
             return redirect(request.url)
 
-    CT_IMAGES_PATHS = []
-    CT_images =request.files.getlist('CT-images[]')
-    for CT_image in CT_images:
-        if CT_image and allowed_file(CT_image.filename):
-            CT_image.save(os.path.join(app.config['UPLOAD_FOLDER'],CT_image.filename))
-            imageLocation = os.path.join(
-                CT_IMAGES_UPLOAD_DIRECTORY,
-                CT_image.filename
-            )
-            CT_IMAGES_PATHS.append(imageLocation)
-    model_input = preprocess_data2(CT_IMAGES_PATHS)
-    print(model_input.shape)
-    prediction = model_CNN_LSTM.predict(model_input).tolist()
-    print(prediction)
-    return render_template("home.html", prediction=prediction[0][0])
-    flash('CT images are successfully uploaded.')
+        age = request.form['age']
+        week = request.form['week_number']
+        percentage = request.form['percentage']
+        gender = request.form['gender']
+        smoking_status = request.form['smoking_status']
+
+        ANN_input=preprocess_attributes(week,percentage,age,gender,smoking_status)
+
+        print(ANN_input.shape)
+        print(ANN_input)
+
+        CT_IMAGES_PATHS = []
+        CT_images =request.files.getlist('CT-images[]')
+        for CT_image in CT_images:
+            if CT_image and allowed_file(CT_image.filename):
+                CT_image.save(os.path.join(app.config['UPLOAD_FOLDER'],CT_image.filename))
+                imageLocation = os.path.join(
+                    CT_IMAGES_UPLOAD_DIRECTORY,
+                    CT_image.filename
+                )
+                CT_IMAGES_PATHS.append(imageLocation)
+        model_input = preprocess_data2(CT_IMAGES_PATHS)
+        print(model_input.shape)
+        prediction_CNN_LSTM = model_CNN_LSTM.predict(model_input).tolist()
+        prediction_ANN = model_ANN.predict(ANN_input)
+        print(prediction_CNN_LSTM,'  ',prediction_ANN)
+        flash('Your Prediction is ',prediction_CNN_LSTM[0][0])
+        return render_template("home.html", prediction=prediction_CNN_LSTM[0][0])
     return redirect('/')
 #                      REGISTER
 
