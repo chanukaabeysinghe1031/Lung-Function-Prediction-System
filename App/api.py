@@ -1,4 +1,4 @@
-from flask import Flask,url_for,session,redirect
+from flask import Flask,url_for,session,redirect,flash
 from flask import render_template
 from flask import request
 import os
@@ -11,14 +11,19 @@ from flask_mysqldb import MySQL,MySQLdb
 from flask import Flask
 import bcrypt
 from passlib.hash import sha256_crypt
+import urllib.request
+
+# *****************************************DEFINE FLASK APP*******************************************************
+app = Flask(__name__)
 
 
 # *********************************************VARIABLES**********************************************************
 UPLOAD_FOLDER = r"./static"
+CT_IMAGES_UPLOAD_DIRECTORY = r"./static/uploads"
+app.config['UPLOAD_FOLDER']=CT_IMAGES_UPLOAD_DIRECTORY
 MODEL_PATH = "D:\IIT\4th year\FYP\Lung Fibrosis\Prototype\Lung-Function-Prediction-System\App\my_model.h5"
+ALLOWED_FILE_TYPE = set(['dcm'])
 
-# *****************************************DEFINE FLASK APP*******************************************************
-app = Flask(__name__)
 
 # ***********************************CONFIGURING TH MYSQL DATABASE************************************************
 app.config['MYSQL_HOST']            = 'localhost'
@@ -35,7 +40,11 @@ mysql = MySQL(app)
 
 def load_model():
     global model
+    global model_ANN
+    global model_CNN_LSTM
     model = tf.keras.models.load_model('model.h5')
+    model_ANN = tf.keras.models.load_model('./V6/ANN_MODEL_V6.h5')
+    model_CNN_LSTM = tf.keras.models.load_model('./V6/model_CNN_LSTM_v6.h5')
     print(" * Model loaded!")
 
 
@@ -55,13 +64,44 @@ def preprocess_data(image_location):
         input.append(image)
 
     input=np.array(input)
+    print(input.shape)
     resized_images = np.transpose(input, (1, 2, 0))
-
     print(resized_images.shape)
+
     input2=[]
     input2.append(resized_images)
     input2=np.array(input2)
     return input2
+
+
+def preprocess_data2(CT_IMAGES_PATHS):
+    input = []
+
+    for CT_image_location in CT_IMAGES_PATHS:
+        ct_dicom = pydicom.read_file(CT_image_location)
+        resized_image=cv2.resize(np.array(ct_dicom.pixel_array),(50,50))
+        image=np.array(resized_image)
+        input.append(image)
+
+
+    input=np.array(input)
+    print(input.shape)
+    resized_images = np.transpose(input, (1, 2, 0))
+    print(resized_images.shape)
+
+
+    input2=[]
+    input2.append(resized_images)
+    input2=np.array(input2)
+    return input2
+
+# _______________________________________________________________________________
+#                                 CHECK FILE TYPE
+# _______________________________________________________________________________
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_FILE_TYPE
+
 # _______________________________________________________________________________
 #                                      ROUTES
 # _______________________________________________________________________________
@@ -70,8 +110,33 @@ def preprocess_data(image_location):
 #                      HOME ROUTE
 @app.route('/')
 def home():
+    load_model()
     return render_template("home.html")
+@app.route("/", methods=["Post"])
+def upload():
+    load_model()
+    if request.method== 'POST':
+        if 'CT-images[]' not in request.files:
+            flash('No file selected')
+            return redirect(request.url)
 
+    CT_IMAGES_PATHS = []
+    CT_images =request.files.getlist('CT-images[]')
+    for CT_image in CT_images:
+        if CT_image and allowed_file(CT_image.filename):
+            CT_image.save(os.path.join(app.config['UPLOAD_FOLDER'],CT_image.filename))
+            imageLocation = os.path.join(
+                CT_IMAGES_UPLOAD_DIRECTORY,
+                CT_image.filename
+            )
+            CT_IMAGES_PATHS.append(imageLocation)
+    model_input = preprocess_data2(CT_IMAGES_PATHS)
+    print(model_input.shape)
+    prediction = model.predict(model_input).tolist()
+    print(prediction)
+    return render_template("home.html", prediction=prediction[0][0])
+    flash('CT images are successfully uploaded.')
+    return redirect('/')
 #                      REGISTER
 
 
@@ -149,8 +214,8 @@ def login():
 #                     PREDICT
 @app.route("/predict", methods=["Get", "Post"])
 def predict():
+    load_model()
     if request.method == "POST":
-        load_model()
         image= request.files["image"]
         basepath=os.path.dirname(__file__)
         file_path = os.path.join(

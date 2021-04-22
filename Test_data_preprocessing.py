@@ -29,7 +29,7 @@ data_of_patients = pd.read_csv('D:\\IIT\\4th year\\FYP\\Lung Fibrosis\\Model\\Da
 image_dataset=[]
 label_dataset=[]
 
-def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visualize=False):
+def build_dataset(patient):
     
     path = CT_images_dir + patient 
     slices = [di.read_file(path+'/'+s) for s in os.listdir(path) ]
@@ -45,8 +45,7 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
         resized_images = np.transpose(resized_images, (1,2,0))
         image_dataset.append(resized_images)
         label_dataset.append(label)
-        #print("shape of dataset",np.array(image_dataset).shape)
-    else : 
+    else :
         count=0
         patient_folder=0
         remaining_slices=len(slices)
@@ -56,7 +55,6 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
                 for  slice in range(10) :
                     #  resizing the (512.512) image into (50,50) image
                     resized_image=cv2.resize(np.array(slices[count].pixel_array),(IMG_PX_SIZE,IMG_PX_SIZE))
-                    #print("shape of the ct image",resized_image.shape)
                     resized_images.append(resized_image)
                     count +=1
                 if(len(resized_images)==10):
@@ -64,30 +62,22 @@ def build_dataset(patient,labels_df,image_pixel_size=50,number_of_slices=20,visu
                     image_dataset.append(resized_images)
                     label_dataset.append(label[patient_folder])
                     patient_folder+=1
-                #print(len(image_dataset))
                 remaining_slices -=10
-                #print("shape of dataset",np.array(image_dataset).shape)
-    return slices 
+    return slices
     
     
 for num , patient in enumerate(patients[:97]) :
-    #if num%10 ==0 :
     print("Patient : ",patient)
     
     try:
         CT_images_of_the_patient = build_dataset(patient,data_of_patients,
                                              image_pixel_size=IMG_PX_SIZE,number_of_slices=NUMBER_OF_SLICES)
-        #dataset.append([CT_image,target_value])
     except  KeyError as e :
         print(e)
         
-    #print('=================================')
 
-#image_dataset2=np.array(image_dataset)
 print(np.array(image_dataset).shape)
 print(np.array(label_dataset).shape)
-#print(image_dataset[3]) 
-#print(np.array(image_dataset[0][0]).shape) 
 print(len(image_dataset))
 print(len(label_dataset))   
 np.save('testingdataset-images-{}-{}-{}.npy'.format(NUMBER_OF_SLICES,IMG_PX_SIZE,IMG_PX_SIZE),image_dataset)
