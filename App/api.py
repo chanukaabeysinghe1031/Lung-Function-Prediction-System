@@ -164,7 +164,6 @@ def upload():
         prediction_CNN_LSTM = model_CNN_LSTM.predict(model_input).tolist()
         prediction_ANN = model_ANN.predict(ANN_input)
         print(prediction_CNN_LSTM,'  ',prediction_ANN)
-        flash('Your Prediction is ',prediction_CNN_LSTM[0][0])
         return render_template("home.html", prediction=prediction_CNN_LSTM[0][0])
     return redirect('/')
 #                      REGISTER
