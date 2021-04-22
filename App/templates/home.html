@@ -132,6 +132,7 @@
                                         <input type="submit" value="submit" class="btn btn-lg btn-block btn-success" style="border-radius: 50px;background-color:hover:#35832F"
                                     </div>
                                 </form>
+                                <h3>Prediction :{{ prediction}}</h3>
                             </div>
                         </div>
                     </div>
@@ -139,22 +140,20 @@
             </div>
         </div>
     </div>
-<br/>
 
-    <div class="container main-body">
-    <!--This is the login page-->
+{#    <div class="container main-body">#}
+{#    <!--This is the login page-->#}
+{##}
+{#    <form method=post enctype=multipart/form-data action="/predict">#}
+{#        <input type=file name=image>#}
+{#        <input type=submit value=predict>#}
+{#        <h3>Prediction :{{ prediction}}</h3>#}
+{#    </form>#}
+{##}
+{##}
+{#</div>#}
 
-    <form method=post enctype=multipart/form-data action="/predict">
-        <input type=file name=image>
-        <input type=submit value=predict>
-        <h3>Prediction :{{ prediction}}</h3>
-    </form>
-
-
-</div>
-
-        <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 </body>

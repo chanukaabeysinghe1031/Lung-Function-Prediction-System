@@ -91,8 +91,9 @@ def preprocess_data2(CT_IMAGES_PATHS):
 
 
     input2=[]
-    input2.append(resized_images)
+    input2.append(input)
     input2=np.array(input2)
+    input2=input.reshape(1,10,50,50,1)
     return input2
 
 # _______________________________________________________________________________
@@ -132,7 +133,7 @@ def upload():
             CT_IMAGES_PATHS.append(imageLocation)
     model_input = preprocess_data2(CT_IMAGES_PATHS)
     print(model_input.shape)
-    prediction = model.predict(model_input).tolist()
+    prediction = model_CNN_LSTM.predict(model_input).tolist()
     print(prediction)
     return render_template("home.html", prediction=prediction[0][0])
     flash('CT images are successfully uploaded.')
