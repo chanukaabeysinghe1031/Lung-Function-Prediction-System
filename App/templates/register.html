@@ -1,28 +1,194 @@
-{%  extends 'template.html' %}
+<DOCType html>
+    <html>
+    <head>
+        <title>Register</title>
+{#        <link rel="stylesheet" type="text/css" href="style.css">#}
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@900&display=swap" rel="stylesheet">
+        <style type="text/css">
+            *{
+                margin:0;
+                padding:0;
+                box-sizing: border-box;
+                font-family: "Times New Roman";
+            }
 
-{% block title %} Home {% endblock %}
+            section{
+                display:flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: linear-gradient(-30deg,#ffffff 0%,#f1f2f6 50%,#ecf0f1 50%,#95a5a6 100%);
+                filter : hue-rotate(120deg);
+                animation: animate 10s linear infinite;
+            }
 
-{% block content %}
+            @keyframes animate {
+                0%{
+                    filter:hue-rotate(0deg);
+                }
+                100%{
+                    filter: hue-rotate(360deg);
+                }
+            }
 
-    <div class="text-center">
-    <form class="form-signin" action="/register" method="post">
-      <img class="mb-4" src="../static/Free_Sample_By_Wix.jpg" alt="" width="72" height="72">
-      <h1 class="h3 mb-3 font-weight-normal">Please Register</h1>
+            .container_box{
+                position: relative;
+                padding: 50px;
+                width: 460px;
+                height:580px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50px;
+                border-top-left-radius: 200px;
+                border-bottom-right-radius: 200px;
+                box-shadow: 0 5px 35px rgba(0,0,0,0.2);
+            }
+            .container_box::after{
+                content: '';
+                position: absolute;
+                top:5px;
+                left:5px;
+                right:5px;
+                bottom:5px;
+                border-radius: 50px;
+                pointer-events: none;
+                border-bottom-right-radius: 100px;
+                border-top-left-radius: 100px;
+                background: linear-gradient(to bottom,rgba(255,255,255,0.3) 0%,rgba(255,255,255,0.1) 15%,
+                            transparent 85%,rgba(255,255,255,0.3) 100%);
+            }
 
-        <label for="firstName" class="sr-only">First Name</label>
-        <input type="text" id="firstName" class="form-control" placeholder="firstName" name="firstName" required autofocus>
+            .container_box .doctor_login_form {
+                position: relative;
+                width: 100%;
+            }
 
-        <label for="secondName" class="sr-only">User Name</label>
-        <input type="text" id="secondName" class="form-control" placeholder="secondName" name="secondName"required autofocus>
+            .container_box .doctor_login_form h1{
+                color: #2c3e50;
+                font-weight: 800;
+                letter-spacing: 2px;
+                margin-bottom: 30px;
+                font-family: 'Raleway', sans-serif;
+            }
 
-        <label for="userName" class="sr-only">User Name</label>
-        <input type="text" id="userName" class="form-control" placeholder="userName" name="userName" required autofocus>
+            .container_box .doctor_login_form .input_box{
+                position: relative;
+                width: 100%;
+                margin-bottom: 20px;
+            }
 
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="inputPassword" class="form-control" placeholder="Password" name="password" required>
+            .container_box .doctor_login_form .input_box input{
+                width :100%;
+                outline: none;
+                border:1px solid rgba(255,255,255,0.2);
+                background: transparent;
+                padding: 8px 10px;
+                padding-left: 35px;
+                border-radius: 10px;
+                color:#2f3542;
+                font-size: 16px;
+                font-weight: 600;
+                box-shadow: inset 0 0 25px rgba(0,0,0,0.2);
+            }
 
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Register </button>
-      <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>
-    </form>
-  </div>
-{% endblock %}
+            .container_box .doctor_login_form .input_box img{
+                position: absolute;
+                top:2px;
+                left:5px;
+                transform: scale(0.7);
+                filter: invert(1);
+                width: 30px;
+                height: 30px;
+            }
+
+            .container_box .doctor_login_form .input_box input::placeholder{
+                color : #2f3542;
+            }
+
+            .container_box .doctor_login_form .input_box input[type="submit"]{
+                background: #2f3542;
+                color:#fff;
+                font-weight: 800;
+                max-width: 100px;
+                padding: 8px 10px;
+                box-shadow: none;
+                letter-spacing: 1px;
+                cursor: pointer;
+                border-radius: 50px;
+            }
+
+            .container_box .doctor_login_form p{
+                color:#fff;
+                font-weight: 300;
+                font-size: 15px;
+                margin-top: 5px;
+            }
+
+            .container_box .doctor_login_form a{
+                color: #2f3542;
+            }
+
+        </style>
+    </head>
+    <body>
+        <section>
+            <div class="container_box">
+                <div class="doctor_login_form">
+                    <h1>Register Here </h1>
+                    <form class="form-signin" action="/register" method="post">
+                        <div class="input_box">
+                            <input type="text" id="firstName" class="form-control" placeholder="First Name" name="firstName" required autofocus>
+                            <img src="../static/baseline_account_circle_black_24dp.png">
+
+                        </div>
+                        <div class="input_box">
+                            <input type="text" id="secondName" class="form-control" placeholder="Second Name" name="secondName" required autofocus>
+                            <img src="../static/baseline_account_circle_black_24dp.png">
+
+                        </div>
+                        <div class="input_box">
+                            <input type="text" id="userName" class="form-control" placeholder="Username" name="userName" required autofocus>
+                            <img src="../static/baseline_account_circle_black_24dp.png">
+
+                        </div>
+                         <div class="input_box">
+                            <input type="password" id="userName" class="form-control" placeholder="Password" name="password" required autofocus>
+                            <img src="../static/baseline_https_black_24dp.png">
+                        </div>
+                        <div class="input_box">
+                            <input type="submit" value="Register">
+                        </div>
+                        <p><a href="#">Forget Password</a></p>
+                        <p><a href="/login">Login</a></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </body>
+    </html>
+
+{#    <div class="text-center">#}
+{#    <form class="form-signin" action="/register" method="post">#}
+{#      <img class="mb-4" src="../static/Free_Sample_By_Wix.jpg" alt="" width="72" height="72">#}
+{#      <h1 class="h3 mb-3 font-weight-normal">Please Register</h1>#}
+{##}
+{#        <label for="firstName" class="sr-only">First Name</label>#}
+{#        <input type="text" id="firstName" class="form-control" placeholder="firstName" name="firstName" required autofocus>#}
+{##}
+{#        <label for="secondName" class="sr-only">User Name</label>#}
+{#        <input type="text" id="secondName" class="form-control" placeholder="secondName" name="secondName"required autofocus>#}
+{##}
+{#        <label for="userName" class="sr-only">User Name</label>#}
+{#        <input type="text" id="userName" class="form-control" placeholder="userName" name="userName" required autofocus>#}
+{##}
+{#        <label for="inputPassword" class="sr-only">Password</label>#}
+{#        <input type="password" id="inputPassword" class="form-control" placeholder="Password" name="password" required>#}
+{##}
+{#        <button class="btn btn-lg btn-primary btn-block" type="submit">Register </button>#}
+{#      <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>#}
+{#    </form>#}
+{#  </div>#}
+{#{% endblock %}#}

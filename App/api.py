@@ -117,6 +117,7 @@ def preprocess_attributes(week,percentage,age,gender,smoking_status):
 #                                 CHECK FILE TYPE
 # _______________________________________________________________________________
 
+#
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_FILE_TYPE
 
@@ -132,7 +133,7 @@ def home():
     return render_template("home.html")
 @app.route("/", methods=["Post"])
 def upload():
-    load_model()
+    #load_model()
     if request.method== 'POST':
         if 'CT-images[]' not in request.files:
             flash('No file selected')
