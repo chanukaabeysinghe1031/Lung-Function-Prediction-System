@@ -140,7 +140,8 @@ def upload():
             model_input = preprocess_data2(CT_IMAGES_PATHS)
             prediction_CNN_LSTM = model_CNN_LSTM.predict(model_input).tolist()
             prediction_ANN = model_ANN.predict(ANN_input)
-            return render_template("home.html", prediction=prediction_CNN_LSTM[0][0],CT_images=model_input[0])
+            ensemble_prediction = prediction_CNN_LSTM[0][0]*0.30+prediction_ANN[0][0]*0.70
+            return render_template("home.html", prediction=ensemble_prediction,CT_images=model_input[0])
         else :
             flash('Please select 10 images')
             return redirect(request.url)
