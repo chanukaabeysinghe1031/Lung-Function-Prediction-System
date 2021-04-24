@@ -153,6 +153,18 @@
                         <p><a href="#">Forget Password</a></p>
                         <p><a href="/register">Register to the System</a></p>
                     </form>
+
+                    <p>
+                         {% with messages = get_flashed_messages() %}
+                             {% if messages %}
+                                 {% for message in messages %}
+                                     <div class="alert alert-success">
+                                         <strong>{{ message }}</strong>
+                                     </div>
+                                 {% endfor %}
+                             {% endif %}
+                         {% endwith %}
+                    </p>
                 </div>
             </div>
         </section>

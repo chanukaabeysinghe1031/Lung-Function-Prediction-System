@@ -36,7 +36,7 @@
                 position: relative;
                 padding: 50px;
                 width: 460px;
-                height:580px;
+                height:680px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -155,7 +155,11 @@
 
                         </div>
                          <div class="input_box">
-                            <input type="password" id="userName" class="form-control" placeholder="Password" name="password" required autofocus>
+                            <input type="password" id="password" class="form-control" placeholder="Password" name="password" required autofocus>
+                            <img src="../static/baseline_https_black_24dp.png">
+                        </div>
+                        <div class="input_box">
+                            <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" name="confirmPassword" required autofocus>
                             <img src="../static/baseline_https_black_24dp.png">
                         </div>
                         <div class="input_box">
@@ -164,6 +168,19 @@
                         <p><a href="#">Forget Password</a></p>
                         <p><a href="/login">Login</a></p>
                     </form>
+
+                     <p>
+                         {% with messages = get_flashed_messages() %}
+                             {% if messages %}
+                                 {% for message in messages %}
+                                     <div class="alert alert-success">
+                                         <strong>{{ message }}</strong>
+                                     </div>
+                                 {% endfor %}
+                             {% endif %}
+                         {% endwith %}
+                    </p>
+
                 </div>
             </div>
         </section>

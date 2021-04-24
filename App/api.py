@@ -12,6 +12,7 @@ from flask import Flask
 import bcrypt
 from passlib.hash import sha256_crypt
 import urllib.request
+from PIL import Image
 
 # *****************************************DEFINE FLASK APP*******************************************************
 app = Flask(__name__)
@@ -42,7 +43,6 @@ def load_model():
     global model
     global model_ANN
     global model_CNN_LSTM
-    model = tf.keras.models.load_model('model.h5')
     model_ANN = tf.keras.models.load_model('./V6/ANN_Model_v7.h5')
     model_CNN_LSTM = tf.keras.models.load_model('./V6/model_CNN_LSTM_v6.h5')
     print(" * Model loaded!")
@@ -51,28 +51,6 @@ def load_model():
 # _______________________________________________________________________________
 #                                 PREPROCESS DATA
 # _______________________________________________________________________________
-
-def preprocess_data(image_location):
-    print(image_location)
-    ct_dicom = pydicom.read_file(image_location)
-    img = ct_dicom.pixel_array
-    resized_image=cv2.resize(np.array(ct_dicom.pixel_array),(50,50))
-    image=np.array(resized_image)
-    print(image.shape)
-    input=[]
-    for i in  range(10):
-        input.append(image)
-
-    input=np.array(input)
-    print(input.shape)
-    resized_images = np.transpose(input, (1, 2, 0))
-    print(resized_images.shape)
-
-    input2=[]
-    input2.append(resized_images)
-    input2=np.array(input2)
-    return input2
-
 
 def preprocess_data2(CT_IMAGES_PATHS):
     input = []
@@ -129,11 +107,11 @@ def allowed_file(filename):
 #                      HOME ROUTE
 @app.route('/')
 def home():
-    load_model()
+    #load_model()
     return render_template("home.html")
 @app.route("/", methods=["Post"])
 def upload():
-    #load_model()
+    load_model()
     if request.method== 'POST':
         if 'CT-images[]' not in request.files:
             flash('No file selected')
@@ -147,9 +125,6 @@ def upload():
 
         ANN_input=preprocess_attributes(week,percentage,age,gender,smoking_status)
 
-        print(ANN_input.shape)
-        print(ANN_input)
-
         CT_IMAGES_PATHS = []
         CT_images =request.files.getlist('CT-images[]')
         for CT_image in CT_images:
@@ -160,12 +135,15 @@ def upload():
                     CT_image.filename
                 )
                 CT_IMAGES_PATHS.append(imageLocation)
-        model_input = preprocess_data2(CT_IMAGES_PATHS)
-        print(model_input.shape)
-        prediction_CNN_LSTM = model_CNN_LSTM.predict(model_input).tolist()
-        prediction_ANN = model_ANN.predict(ANN_input)
-        print(prediction_CNN_LSTM,'  ',prediction_ANN)
-        return render_template("home.html", prediction=prediction_CNN_LSTM[0][0])
+
+        if len(CT_IMAGES_PATHS)==10:
+            model_input = preprocess_data2(CT_IMAGES_PATHS)
+            prediction_CNN_LSTM = model_CNN_LSTM.predict(model_input).tolist()
+            prediction_ANN = model_ANN.predict(ANN_input)
+            return render_template("home.html", prediction=prediction_CNN_LSTM[0][0],CT_images=model_input[0])
+        else :
+            flash('Please select 10 images')
+            return redirect(request.url)
     return redirect('/')
 #                      REGISTER
 
@@ -180,30 +158,44 @@ def registerDoctor():
         secondName = request.form['secondName']
         userName = request.form['userName']
         password = request.form['password']
+        confirmPassword = request.form['confirmPassword']
 
-        # Hashing the password
-        hashed_password = sha256_crypt.encrypt(password)
+        if(password==confirmPassword):
+            # Hashing the password
+            hashed_password = sha256_crypt.encrypt(password)
 
-        # Connection to the database
-        cursor=mysql.connection.cursor()
+            # Connection to the database
+            #cursor=mysql.connection.cursor()
 
-        sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
-        values = (firstName,secondName,userName,hashed_password)
-        cursor.execute(sql, values)
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute("SELECT *FROM doctors WHERE username=%s", (userName,))
+            user = cursor.fetchone()
 
-        mysql.connection.commit()
+            if user:
+                flash('Username has been already taken')
+                return render_template("register.html")
 
-        # Save the data in the session
-        session['firstName'] = firstName
-        session['secondName'] = secondName
-        session['userName'] =userName
+            else:
+                sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
+                values = (firstName,secondName,userName,hashed_password)
+                cursor.execute(sql, values)
 
-        # Load Model
-        print("LOADING MODEL")
-        load_model()
-        print("MODEL LOADED SUCCESSFULLY")
+                mysql.connection.commit()
 
-        return redirect(url_for("home"))
+                # Save the data in the session
+                session['firstName'] = firstName
+                session['secondName'] = secondName
+                session['userName'] =userName
+
+                # Load Model
+                # print("LOADING MODEL")
+                # load_model()
+                # print("MODEL LOADED SUCCESSFULLY")
+
+                return redirect(url_for("home"))
+        else:
+            flash('Passwords are not matching!')
+            return render_template("register.html")
 
 
 #                        LOGIN
@@ -222,7 +214,7 @@ def login():
         user = cursor.fetchone()
 
         # check whether there is a user with the username entered
-        if len(user)>0 :
+        if user :
             # Check whether the input password and the password from the database similar
             if sha256_crypt.verify(password,user['password']):
                 # Save data in the session
@@ -231,37 +223,16 @@ def login():
                 session['userName'] = user['username']
 
                 # Load Model
-                print("LOADING MODEL")
-                load_model()
-                print("MODEL LOADED SUCCESSFULLY")
+                # print("LOADING MODEL")
+                # load_model()
+                # print("MODEL LOADED SUCCESSFULLY")
                 return redirect(url_for("home"))
             else :
+                flash('Incorrect Password!')
                 return redirect(url_for("login"))
         else :
+            flash('No User Found!')
             return redirect(url_for("login"))
-
-
-#                     PREDICT
-@app.route("/predict", methods=["Get", "Post"])
-def predict():
-    load_model()
-    if request.method == "POST":
-        image= request.files["image"]
-        basepath=os.path.dirname(__file__)
-        file_path = os.path.join(
-            basepath, '', secure_filename(image.filename)
-        )
-        if image:
-            imageLocation = os.path.join(
-                UPLOAD_FOLDER,
-                image.filename
-            )
-            image.save(imageLocation)
-            model_input=preprocess_data(imageLocation)
-            prediction = model.predict(model_input).tolist()
-            print(prediction)
-            return render_template("home.html", prediction=prediction[0][0])
-    return render_template("home.html", prediction=0)
 
 
 #                           LOGOUT
@@ -275,3 +246,47 @@ def logout():
 if __name__ == "__main__":
     app.secret_key = "0779302236199710311231231231234"
     app.run(port=12000, debug=True)
+
+
+# def preprocess_data(image_location):
+#     print(image_location)
+#     ct_dicom = pydicom.read_file(image_location)
+#     img = ct_dicom.pixel_array
+#     resized_image=cv2.resize(np.array(ct_dicom.pixel_array),(50,50))
+#     image=np.array(resized_image)
+#     print(image.shape)
+#     input=[]
+#     for i in  range(10):
+#         input.append(image)
+#
+#     input=np.array(input)
+#     print(input.shape)
+#     resized_images = np.transpose(input, (1, 2, 0))
+#     print(resized_images.shape)
+#
+#     input2=[]
+#     input2.append(resized_images)
+#     input2=np.array(input2)
+#     return input2
+
+#                     PREDICT
+# @app.route("/predict", methods=["Get", "Post"])
+# def predict():
+#     load_model()
+#     if request.method == "POST":
+#         image= request.files["image"]
+#         basepath=os.path.dirname(__file__)
+#         file_path = os.path.join(
+#             basepath, '', secure_filename(image.filename)
+#         )
+#         if image:
+#             imageLocation = os.path.join(
+#                 UPLOAD_FOLDER,
+#                 image.filename
+#             )
+#             image.save(imageLocation)
+#             model_input=preprocess_data(imageLocation)
+#             prediction = model.predict(model_input).tolist()
+#             print(prediction)
+#             return render_template("home.html", prediction=prediction[0][0])
+#     return render_template("home.html", prediction=0)

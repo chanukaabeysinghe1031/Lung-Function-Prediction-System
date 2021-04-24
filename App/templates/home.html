@@ -13,7 +13,7 @@
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-<!-- Latest compiled and minified JavaScript -->
+
 </head>
 <body>
 
@@ -44,21 +44,21 @@
         </div>
     </nav>
 
-
-
-<h2>Welcome</h2>
-        {% if session['firstName'] %}
-        <p>Doctor {{ session['firstName'] }} {{ session['secondName'] }}</p>
-        {% else %}
-        <p>Not login yet</p>
-        {% endif %}
     <div id="wrapper">
         <div id="page-wrapper">
             <div id="row">
                 <div id="card" style="margin-top: 50px" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
                     <div class="panel panel-info">
                         <div class="panel-heading">
-                            <div class="panel-title">Please select the CT images which are needed to predict FVC</div>
+                            <h2>
+                                Welcome
+                                {% if session['firstName'] %}
+                                    Doctor {{ session['firstName'] }} {{ session['secondName'] }}
+                                {% else %}
+                                    Not login yet
+                                {% endif %}
+                            </h2>
+                            <div class="panel-title"></div>
                          </div>
                         <div class="panel-body">
                             <p>
@@ -73,7 +73,7 @@
                                 {% endwith %}
                             </p>
                             <div class="row">
-                                <p style="padding: 8px;" class="text-center">Only select Dicom images</p>
+                                <p style="padding: 8px;">Please select the 10 CT images which are needed to predict FVC(Only select Dicom images)</p>
                             </div>
                             <div class="row" style="padding:10px 15px 9px;">
                                 <form method="POST" action="/" enctype="multipart/form-data">
@@ -85,15 +85,15 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="week_number">Week Number</label>
-                                            <input type="text" class="form-control" id="week_number" placeholder="Week Number" name="week_number" required>
+                                            <input type="number"  min="0" step="0" class="form-control" id="week_number" placeholder="Week Number" name="week_number" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="age">Age</label>
-                                            <input type="text" class="form-control" id="age" placeholder="Age" name="age" required>
+                                            <input type="number" min="1" step="1" class="form-control" id="age" placeholder="Age" name="age" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="percentage">Percentage</label>
-                                            <input type="text" class="form-control" id="percentage" placeholder="Percentage" name="percentage" required>
+                                            <input type="number" min="1" step="1" max="100" class="form-control" id="percentage" placeholder="Percentage" name="percentage" required>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -132,13 +132,21 @@
                                         <input type="submit" value="submit" class="btn btn-lg btn-block btn-success" style="border-radius: 50px;background-color:hover:#35832F"
                                     </div>
                                 </form>
-                                <h3>Prediction :{{ prediction}}</h3>
                             </div>
                         </div>
+
+                         <div class="panel-footer">
+                            <h2>
+                               Prediction :{{ prediction}}
+                            </h2>
+                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    <canvas id="ct_images" width="50" height="50" style="border:1px solid #0000";>
+
+    </canvas>
     </div>
 
 {#    <div class="container main-body">#}
@@ -153,6 +161,23 @@
 {##}
 {#</div>#}
 
+    <script>
+        var  ctx =document.getElementById('ct_images').getContext('2d');
+        var imageData = [
+	[[255,0,0], [255,0,0], [255,0,0], [255,0,0], [255,0,0]],
+  [[0,255,0], [0,255,0], [0,255,0], [0,255,0], [0,255,0]],
+  [[255,0,0], [255,0,0], [255,0,0], [255,0,0], [255,0,0]],
+  [[0,255,0], [0,255,0], [0,255,0], [0,255,0], [0,255,0]],
+  [[255,0,0], [255,0,0], [255,0,0], [255,0,0], [255,0,0]],
+];
+
+        for(var y = 0; y < imageData.length; y++) {
+            for (var x = 0; x < imageData[y].length; x++) {
+                ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
