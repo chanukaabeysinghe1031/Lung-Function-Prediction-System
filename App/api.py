@@ -122,9 +122,7 @@ def upload():
         percentage = request.form['percentage']
         gender = request.form['gender']
         smoking_status = request.form['smoking_status']
-
         ANN_input=preprocess_attributes(week,percentage,age,gender,smoking_status)
-
         CT_IMAGES_PATHS = []
         CT_images =request.files.getlist('CT-images[]')
         for CT_image in CT_images:
@@ -135,7 +133,6 @@ def upload():
                     CT_image.filename
                 )
                 CT_IMAGES_PATHS.append(imageLocation)
-
         if len(CT_IMAGES_PATHS)==10:
             model_input = preprocess_data2(CT_IMAGES_PATHS)
             prediction_CNN_LSTM = model_CNN_LSTM.predict(model_input).tolist()
@@ -164,35 +161,21 @@ def registerDoctor():
         if(password==confirmPassword):
             # Hashing the password
             hashed_password = sha256_crypt.encrypt(password)
-
-            # Connection to the database
-            #cursor=mysql.connection.cursor()
-
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute("SELECT *FROM doctors WHERE username=%s", (userName,))
             user = cursor.fetchone()
-
             if user:
                 flash('Username has been already taken')
                 return render_template("register.html")
-
             else:
                 sql = "INSERT INTO doctors VALUES (%s, %s, %s, %s)"
                 values = (firstName,secondName,userName,hashed_password)
                 cursor.execute(sql, values)
-
                 mysql.connection.commit()
-
                 # Save the data in the session
                 session['firstName'] = firstName
                 session['secondName'] = secondName
                 session['userName'] =userName
-
-                # Load Model
-                # print("LOADING MODEL")
-                # load_model()
-                # print("MODEL LOADED SUCCESSFULLY")
-
                 return redirect(url_for("home"))
         else:
             flash('Passwords are not matching!')
@@ -246,7 +229,7 @@ def logout():
 
 if __name__ == "__main__":
     app.secret_key = "0779302236199710311231231231234"
-    app.run(port=12000, debug=True)
+    app.run(port=12000, debug=False)
 
 
 # def preprocess_data(image_location):
